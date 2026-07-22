@@ -30,6 +30,7 @@ fn main() {
                     break;
                 }
             };
+            //Appends each value in list to the veclist
             veclist.push(number);
         }
     }
@@ -41,68 +42,56 @@ fn main() {
     let len = veclist.len();
 
     // This function returns a vector with the sorted list;
-    let sortedlist: Vec<i32> = quicksort(&mut veclist, 0, len - 1);
+    quicksort(&mut veclist, 0, len - 1);
 
     // Prints the sorted list
-    println!("{:?}", sortedlist);
+    println!("{:?}", veclist);
 }
 
-fn quicksort(list: &mut [i32], start: usize, end: usize) -> Vec<i32> {
+fn quicksort(list: &mut [i32], start: usize, end: usize) {
     // Checks if sorted yet
     if end <= start {
-        return list.to_vec();
+        return;
     }
 
-    let list: &mut[i32] = &mut list[start..(end + 1 + start)];
+    let list: &mut[i32] = &mut list[start..=end];
 
     println!("start: {:?}, end: {:?}, list: {:?}", start, end, list);
 
     // Find median-of-three and make it our pivot
-    let [first, .., last] = list[..] else {
-        return list.to_vec();
-    };
-    let middle = list[end / 2];
+    let first = list[start];
+    let last = list[end];
+    let middle = list[(start + end) / 2];
     println!("first: {:?}, middle: {:?}, last: {:?}", first, middle, last);
     let pivot = middle.clamp(first.min(last), first.max(last));
 
     // Sets pivot to the index of the previously found median
     let mut pivot: usize = 
-        if pivot == first {0} 
-        else if pivot == middle {end / 2} 
+        if pivot == first {start} 
+        else if pivot == middle {(start + end) / 2} 
         else {end};
 
     println!("pivot: {:?}", pivot);
     // Swap pivot and last
     swap(list, pivot, end);
+    println!("list after first swap: {:?}", list);
     pivot = end;
-    let mut left: usize = 0;
-    let mut right: usize = end - 1;
+    let mut left: usize = end - 1;
+    let mut right: usize = start;
+
     loop {
         // Finds index of left
-        while list[left] < list[pivot] {
-            if left < (end - 1) {
-                left += 1;
-            } else {
-                break;
+        let left = for left in start..end {
+            if list[left] > list[pivot] {
+                break left;
             }
         }
-        //let left = match list.iter().position(|&x| x >= list[pivot]) {
-        //    Some(ind) => ind,
-        //   None => pivot,
-        //;
 
-        // Finds index of right
-        while list[right] > list[pivot] {
-            if right > 0 {
-                right -= 1;
-            } else {
-                break;
+        let right = for right in (start..end).rev() {
+            if list[right] < list[pivot] {
+                break right;
             }
         }
-        //let right = match list.iter().rposition(|&x| x <= list[pivot]) {
-        //    Some(ind) => ind,
-        //    None => 0,
-        //};
 
         if left < right {
             swap(list, left, right);
@@ -112,15 +101,18 @@ fn quicksort(list: &mut [i32], start: usize, end: usize) -> Vec<i32> {
             left += 1;
             right -= 1;
         } else {
-            println!("Before swapping the pivot back: {:?}", list);  
-            swap(list, left, pivot);
-            println!("After swapping the pivot back: {:?}", list);
+            if list[left] > list[pivot] {
+                println!("Before swapping the pivot with left: {:?}", list);  
+                swap(list, left, pivot);
+                pivot = left;
+                println!("After swapping the pivot with left: {:?}", list);
 
-            // For debug
-            println!("left: {:?}, right: {:?}, end: {:?}", left, right, end);
+                // For debug
+                println!("left: {:?}, right: {:?}, end: {:?}", left, right, end);
 
-            let sortedlist = [quicksort(list, 0, left - 1), (&[list[left]]).to_vec(), quicksort(list, left + 1, end - (left + 1))].concat();
-            return sortedlist
+                quicksort(list, start, pivot - 1);
+                quicksort(list, pivot + 1, end);
+            }
         }
     }
 }

@@ -54,9 +54,9 @@ fn quicksort(list: &mut [i32], start: usize, end: usize) {
         return;
     }
 
-    let list: &mut[i32] = &mut list[start..=end];
-
-    println!("start: {:?}, end: {:?}, list: {:?}", start, end, list);
+    // Only for debugging purposes
+    let workingsegment: &mut[i32] = &mut list[start..=end];
+    println!("start: {:?}, end: {:?}, list: {:?}", start, end, workingsegment);
 
     // Find median-of-three and make it our pivot
     let first = list[start];
@@ -76,22 +76,23 @@ fn quicksort(list: &mut [i32], start: usize, end: usize) {
     swap(list, pivot, end);
     println!("list after first swap: {:?}", list);
     pivot = end;
-    let mut left: usize = end - 1;
-    let mut right: usize = start;
+    let mut left: usize = start;
+    let mut right: usize = end - 1;
 
     loop {
         // Finds index of left
-        let left = for left in start..end {
-            if list[left] > list[pivot] {
-                break left;
+        if let Some(index) = (left..end).find(|&i| list[i] >= list[pivot]) {
+            left = index;
+        }   else {
+                left = end - 1;
             }
-        }
 
-        let right = for right in (start..end).rev() {
-            if list[right] < list[pivot] {
-                break right;
+        // Finds index of right
+        if let Some(index) = (start..=right).rev().find(|&i| list[i] < list[pivot]) {
+            right = index;
+        }   else {
+                right = end - 1;
             }
-        }
 
         if left < right {
             swap(list, left, right);
@@ -110,9 +111,13 @@ fn quicksort(list: &mut [i32], start: usize, end: usize) {
                 // For debug
                 println!("left: {:?}, right: {:?}, end: {:?}", left, right, end);
 
-                quicksort(list, start, pivot - 1);
+                // Ensures pivot is not on the far left so it doesn't try and take what is to the left of it (nothing)
+                if pivot >= 1 {
+                    quicksort(list, start, pivot - 1);
+                }
                 quicksort(list, pivot + 1, end);
             }
+            return;
         }
     }
 }
